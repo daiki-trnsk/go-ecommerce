@@ -1,6 +1,7 @@
 package main
 
 import (
+	"log"
 	"os"
 
 	"github.com/daiki-trnsk/go-ecommerce/controllers"
@@ -16,7 +17,7 @@ func main(){
 		port = "8000"
 	}
 
-	app :=controllers.NewApplication(database.Products(database.Client, "Products"), database.UserData(database.Client, "Users"))
+	app :=controllers.NewApplication(database.ProductData(database.Client, "Products"), database.UserData(database.Client, "Users"))
 
 	router := gin.New()
 	router.Use(gin.Logger())
