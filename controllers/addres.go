@@ -13,7 +13,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-func AddAddress() gin.HandlerFunc{
+func AddAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {
@@ -132,7 +132,7 @@ func EditWorkAddress() gin.HandlerFunc {
 	}
 }
 
-func DeleteAddress() gin.HandlerFunc{
+func DeleteAddress() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {

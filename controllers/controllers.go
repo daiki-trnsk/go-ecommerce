@@ -22,7 +22,7 @@ var UserCollection *mongo.Collection = database.UserData(database.Client, "Users
 var ProductCollection *mongo.Collection = database.ProductData(database.Client, "Products")
 var Validate = validator.New()
 
-func HashPassword (password string) string{
+func HashPassword(password string) string {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
 	if err != nil {
 		log.Panic(err)
@@ -30,7 +30,7 @@ func HashPassword (password string) string{
 	return string(bytes)
 }
 
-func VerifyPassword (userpassword string, givenpassword string) (bool, string){
+func VerifyPassword(userpassword string, givenpassword string) (bool, string) {
 	err := bcrypt.CompareHashAndPassword([]byte(givenpassword), []byte(userpassword))
 	valid := true
 	msg := ""
@@ -41,46 +41,41 @@ func VerifyPassword (userpassword string, givenpassword string) (bool, string){
 	return valid, msg
 }
 
-func SignUp () gin.HandlerFunc{
-	return func (c *gin.Context)  {
+func SignUp() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-
 		var user models.User
-		if err := c.BindJSON(&user); err != nil{
-			c.JSON(http.StatusBadRequest, gin.H{"err": err.Error()})
+		if err := c.BindJSON(&user); err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			return
 		}
-
 		validationErr := Validate.Struct(user)
-		if validationErr != nil{
+		if validationErr != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": validationErr})
 			return
 		}
 
 		count, err := UserCollection.CountDocuments(ctx, bson.M{"email": user.Email})
-		if err != nil{
+		if err != nil {
 			log.Panic(err)
 			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 			return
 		}
-
 		if count > 0 {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "user already exists"})
+			c.JSON(http.StatusBadRequest, gin.H{"error": "User already exists"})
 		}
-
 		count, err = UserCollection.CountDocuments(ctx, bson.M{"phone": user.Phone})
-
 		defer cancel()
 		if err != nil {
 			log.Panic(err)
-			c.JSON(http.StatusInternalServerError, gin.H{"error":err})
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
 			return
 		}
-
 		if count > 0 {
 			c.JSON(http.StatusBadRequest, gin.H{"error": "this phone number is already in use"})
+			return
 		}
-
 		password := HashPassword(*user.Password)
 		user.Password = &password
 
@@ -88,64 +83,53 @@ func SignUp () gin.HandlerFunc{
 		user.Updated_At, _ = time.Parse(time.RFC3339, time.Now().Format(time.RFC3339))
 		user.ID = primitive.NewObjectID()
 		user.User_ID = user.ID.Hex()
-		token, refreshtoken, _ := generate.TokenGenerator(*user.Email, *user.First_Name, *user.Last_Name, *&user.User_ID)
+		token, refreshtoken, _ := generate.TokenGenerator(*user.Email, *user.First_Name, *user.Last_Name, user.User_ID)
 		user.Token = &token
 		user.Refresh_Token = &refreshtoken
 		user.UserCart = make([]models.ProductUser, 0)
 		user.Address_Details = make([]models.Address, 0)
 		user.Order_Status = make([]models.Order, 0)
-
 		_, inserterr := UserCollection.InsertOne(ctx, user)
 		if inserterr != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error":"the user did not created"})
 			return
 		}
 		defer cancel()
-
 		c.JSON(http.StatusCreated, "Succesfully signed in!")
 	}
 }
 
-func Login() gin.HandlerFunc{
-	return func(c *gin.Context){
-		var ctx,cancel= context.WithTimeout(context.Background(), 100*time.Second)
+func Login() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-
-		var user models.User; 
+		var user models.User
 		var founduser models.User
-		if err := c.BindJSON(&user); err != nil{
+		if err := c.BindJSON(&user); err != nil {
 			c.JSON(http.StatusBadRequest, gin.H{"error": err})
 			return
 		}
-
 		err := UserCollection.FindOne(ctx, bson.M{"email": user.Email}).Decode(&founduser)
 		defer cancel()
-
 		if err != nil {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": "login or password incorrect"})
 			return
 		}
-
 		PasswordIsValid, msg := VerifyPassword(*user.Password, *founduser.Password)
-
 		defer cancel()
-
 		if !PasswordIsValid {
 			c.JSON(http.StatusInternalServerError, gin.H{"error": msg})
 			fmt.Println(msg)
 			return
 		}
-
 		token, refreshToken, _ := generate.TokenGenerator(*founduser.Email, *founduser.First_Name, *founduser.Last_Name, founduser.User_ID)
 		defer cancel()
-
 		generate.UpdateAllTokens(token, refreshToken, founduser.User_ID)
-
 		c.JSON(http.StatusFound, founduser)
 	}
 }
 
-func ProductViewerAdmin() gin.HandlerFunc{
+func ProductViewerAdmin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		var products models.Product
@@ -165,7 +149,7 @@ func ProductViewerAdmin() gin.HandlerFunc{
 	}
 }
 
-func SearchProduct() gin.HandlerFunc{
+func SearchProduct() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var productlist []models.Product
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
@@ -194,7 +178,7 @@ func SearchProduct() gin.HandlerFunc{
 	}
 }
 
-func SearchProductByQuery() gin.HandlerFunc{
+func SearchProductByQuery() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		var searchproducts []models.Product
 		queryParam := c.Query("name")
@@ -228,4 +212,3 @@ func SearchProductByQuery() gin.HandlerFunc{
 		c.IndentedJSON(200, searchproducts)
 	}
 }
-

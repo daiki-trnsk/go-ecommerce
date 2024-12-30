@@ -12,7 +12,7 @@ import (
 	"go.mongodb.org/mongo-driver/mongo"
 )
 
-var(
+var (
 	ErrCantFindProduct    = errors.New("can't find product")
 	ErrCantDecodeProducts = errors.New("can't find product")
 	ErrUserIDIsNotValid   = errors.New("user is not valid")

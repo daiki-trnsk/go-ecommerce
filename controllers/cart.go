@@ -27,8 +27,8 @@ import (
 		}
 	}
 
-func (app *Application) AddToCart() gin.HandlerFunc{
-	return func (c *gin.Context)  {
+func (app *Application) AddToCart() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		productQueryID := c.Query("id")
 		if productQueryID == "" {
 			log.Println("product id is empty")
@@ -58,7 +58,7 @@ func (app *Application) AddToCart() gin.HandlerFunc{
 	}
 }
 
-func (app *Application) RemoveItem() gin.HandlerFunc{
+func (app *Application) RemoveItem() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		productQueryID := c.Query("id")
 		if productQueryID == "" {
@@ -91,7 +91,7 @@ func (app *Application) RemoveItem() gin.HandlerFunc{
 	}
 }
 
-func GetItemFromCart() gin.HandlerFunc{
+func GetItemFromCart() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		user_id := c.Query("id")
 		if user_id == "" {
@@ -134,8 +134,8 @@ func GetItemFromCart() gin.HandlerFunc{
 	}
 }
 
-func (app *Application) BuyFromCart() gin.HandlerFunc{
-	return func (c *gin.Context)  {
+func (app *Application) BuyFromCart() gin.HandlerFunc {
+	return func(c *gin.Context) {
 		userQueryID := c.Query("id")
 		if userQueryID == "" {
 			log.Panicln("user id is empty")
@@ -151,7 +151,7 @@ func (app *Application) BuyFromCart() gin.HandlerFunc{
 	}
 }
 
-func (app *Application) InstantBuy() gin.HandlerFunc{
+func (app *Application) InstantBuy() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		UserQueryID := c.Query("userid")
 		if UserQueryID == "" {
@@ -179,5 +179,3 @@ func (app *Application) InstantBuy() gin.HandlerFunc{
 		c.IndentedJSON(200, "Successully placed the order")
 	}
 }
-
-
