@@ -191,7 +191,7 @@ func SearchProductByQuery() gin.HandlerFunc {
 		}
 		var ctx, cancel = context.WithTimeout(context.Background(), 100*time.Second)
 		defer cancel()
-		searchquerydb, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"$regex": queryParam}})
+		searchquerydb, err := ProductCollection.Find(ctx, bson.M{"product_name": bson.M{"$regex": queryParam, "$options": "i"}})
 		if err != nil {
 			c.IndentedJSON(404, "something went wrong in fetching the dbquery")
 			return
