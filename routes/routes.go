@@ -2,13 +2,13 @@ package routes
 
 import (
 	"github.com/daiki-trnsk/go-ecommerce/controllers"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func UserRoutes(incomingRoutes *gin.Engine) {
-	incomingRoutes.POST("/users/signup", controllers.SignUp())
-	incomingRoutes.POST("/users/login", controllers.Login())
-	incomingRoutes.POST("/admin/addproduct", controllers.ProductViewerAdmin())
-	incomingRoutes.GET("/users/productview", controllers.SearchProduct())
-	incomingRoutes.GET("/users/search", controllers.SearchProductByQuery())
+func UserRoutes(e *echo.Echo) {
+	e.POST("/users/signup", controllers.SignUp)
+	e.POST("/users/login", controllers.Login)
+	e.POST("/admin/addproduct", controllers.ProductViewerAdmin)
+	e.GET("/users/productview", controllers.SearchProduct)
+	e.GET("/users/search", controllers.SearchProductByQuery)
 }

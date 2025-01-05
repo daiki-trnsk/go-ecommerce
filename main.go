@@ -6,10 +6,10 @@ import (
 
 	"github.com/daiki-trnsk/go-ecommerce/controllers"
 	"github.com/daiki-trnsk/go-ecommerce/database"
-	"github.com/daiki-trnsk/go-ecommerce/middleware"
+	customMiddleware "github.com/daiki-trnsk/go-ecommerce/middleware"
 	"github.com/daiki-trnsk/go-ecommerce/routes"
-
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 )
 
 func main() {
@@ -19,18 +19,25 @@ func main() {
 	}
 	app := controllers.NewApplication(database.ProductData(database.Client, "Products"), database.UserData(database.Client, "Users"))
 
-	router := gin.New()
-	router.Use(gin.Logger())
-	routes.UserRoutes(router)
-	router.Use(middleware.Authentication())
-	router.GET("/addtocart", app.AddToCart())
-	router.GET("/removeitem", app.RemoveItem())
-	router.GET("/listcart", controllers.GetItemFromCart())
-	router.POST("/addaddress", controllers.AddAddress())
-	router.PUT("/edithomeaddress", controllers.EditHomeAddress())
-	router.PUT("/editworkaddress", controllers.EditWorkAddress())
-	router.GET("/deleteaddresses", controllers.DeleteAddress())
-	router.GET("/cartcheckout", app.BuyFromCart())
-	router.GET("/instantbuy", app.InstantBuy())
-	log.Fatal(router.Run(":" + port))
+	e := echo.New()
+	e.Use(middleware.Logger())
+	e.Use(middleware.Recover())
+	routes.UserRoutes(e)
+
+	e.POST("/signup", controllers.SignUp)
+	e.POST("/login", controllers.Login)
+
+	auth := e.Group("")
+	auth.Use(customMiddleware.Authentication)
+	auth.GET("/addtocart", app.AddToCart)
+	auth.GET("/removeitem", app.RemoveItem)
+	auth.GET("/listcart", controllers.GetItemFromCart)
+	auth.POST("/addaddress", controllers.AddAddress)
+	auth.PUT("/edithomeaddress", controllers.EditHomeAddress)
+	auth.PUT("/editworkaddress", controllers.EditWorkAddress)
+	auth.GET("/deleteaddresses", controllers.DeleteAddress)
+	auth.GET("/cartcheckout", app.BuyFromCart)
+	auth.GET("/instantbuy", app.InstantBuy)
+
+	log.Fatal(e.Start(":" + port))
 }

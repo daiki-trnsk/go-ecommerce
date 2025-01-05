@@ -3,25 +3,21 @@ package middleware
 import (
 	"net/http"
 	token "github.com/daiki-trnsk/go-ecommerce/tokens"
-	"github.com/gin-gonic/gin"
+	"github.com/labstack/echo/v4"
 )
 
-func Authentication() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		ClientToken := c.Request.Header.Get("token")
+func Authentication(next echo.HandlerFunc) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		ClientToken := c.Request().Header.Get("token")
 		if ClientToken == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "No Authorization Header Provided"})
-			c.Abort()
-			return
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": "No Authorization Header Provided"})
 		}
 		claims, err := token.ValidateToken(ClientToken)
 		if err != "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": err})
-			c.Abort()
-			return
+			return c.JSON(http.StatusInternalServerError, map[string]string{"error": err})
 		}
 		c.Set("email", claims.Email)
 		c.Set("uid", claims.Uid)
-		c.Next()
+		return next(c)
 	}
 }
